@@ -135,6 +135,11 @@ h1.name em { font-style: italic; color: var(--accent); }
 /* sections */
 section { padding: 56px 0; }
 section[id] { scroll-margin-top: 72px; }
+.smooth-js { scroll-behavior: auto; }
+/* every home section gets a whole screen, content centred with air around it */
+.intro ~ section[id] { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 120px 0; }
+.intro ~ section[id] > .wrap { width: 100%; }
+@media (max-width: 760px) { .intro ~ section[id] { padding: 96px 0; } }
 .intro ~ #about { background: linear-gradient(to bottom, transparent, var(--bg) 22%); }
 section > .wrap > h2, .h2 { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.4vw, 42px); letter-spacing: -.02em; line-height: 1.15; margin: 0 0 12px; }
 .sub { color: var(--ink-2); margin: 0 0 32px; }

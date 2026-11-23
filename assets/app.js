@@ -193,6 +193,49 @@
     $$(".reveal").forEach(function (el) { el.classList.add("in"); });
   }
 
+  // ---- smooth inertial scroll for mouse wheels and trackpads.
+  // Touch, keyboard and the scrollbar stay native; off for reduced motion.
+  var smooth = { to: window.scrollY, at: window.scrollY, run: false };
+  window.smoothScrollTo = function (y) { y = Math.max(0, Math.min(y, maxScroll())); window.scrollTo(0, y); smooth.to = smooth.at = y; };
+  function maxScroll() { return document.documentElement.scrollHeight - window.innerHeight; }
+  if (finePointer && !reduceMotion) {
+    root.classList.add("smooth-js");
+    var EASE = 0.1;
+    function step() {
+      smooth.at += (smooth.to - smooth.at) * EASE;
+      if (Math.abs(smooth.to - smooth.at) < 0.5) smooth.at = smooth.to;
+      window.scrollTo(0, smooth.at);
+      if (smooth.at !== smooth.to) requestAnimationFrame(step); else smooth.run = false;
+    }
+    function go(y) {
+      smooth.to = Math.max(0, Math.min(y, maxScroll()));
+      if (!smooth.run) { smooth.run = true; smooth.at = window.scrollY; requestAnimationFrame(step); }
+    }
+    window.addEventListener("wheel", function (e) {
+      if (e.ctrlKey || e.defaultPrevented) return;              // pinch-zoom
+      if (e.target.closest && e.target.closest(".pal")) return; // menu list scrolls itself
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;      // sideways swipes
+      e.preventDefault();
+      var d = e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? window.innerHeight : 1);
+      go((smooth.run ? smooth.to : window.scrollY) + d);
+    }, { passive: false });
+    // keyboard, scrollbar or find-in-page moved the page: follow it
+    window.addEventListener("scroll", function () { if (!smooth.run) smooth.to = smooth.at = window.scrollY; }, { passive: true });
+    // in-page links glide too
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest('a[href*="#"]');
+      if (!a || a.target || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      var url = new URL(a.href, location.href);
+      if (url.pathname !== location.pathname || !url.hash) return;
+      var el = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+      if (!el) return;
+      e.preventDefault();
+      history.pushState(null, "", url.hash);
+      go(el.getBoundingClientRect().top + window.scrollY - 56);
+    });
+    window.smoothScrollTo = function (y) { go(y); };
+  }
+
   // toast
   var toastEl = $("#toast"), toastT;
   function toast(msg) {
@@ -219,7 +262,13 @@
       var done = function () { toast(c.done); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, done); else done();
     };
-    return function () { window.location.href = c.href; };
+    return function () {
+      var url = new URL(c.href, location.href), el = url.hash && document.getElementById(url.hash.slice(1));
+      if (el && url.pathname === location.pathname && url.origin === location.origin) {
+        history.pushState(null, "", url.hash);
+        window.smoothScrollTo(el.getBoundingClientRect().top + window.scrollY - 56);
+      } else window.location.href = c.href;
+    };
   }
   function render() {
     var q = input.value.trim().toLowerCase();
