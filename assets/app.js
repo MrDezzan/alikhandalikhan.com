@@ -81,30 +81,26 @@
   else { if (loader) loader.remove(); introScramble(); }
 
   function runLoader(el, fast, done) {
-    var bar = $(".ld-bar b", el), pct = $(".ld-pct", el), lines = $$(".ld-line", el), dotsEl = $(".ld-dots", el);
+    var dots = $$(".ld-d", el), pct = $(".ld-pct", el);
     var minT = fast ? 350 : 1300, maxT = fast ? 1400 : 3000, t0 = performance.now(), p = 0;
     var portraitOk = !$("[data-portrait]"), fontsOk = !document.fonts;
-    window.addEventListener("portrait:ready", function (e) {
-      portraitOk = true;
-      if (dotsEl && e.detail && e.detail.dots) dotsEl.textContent = e.detail.dots.toLocaleString("en-US").replace(/,/g, " ");
-    }, { once: true });
+    window.addEventListener("portrait:ready", function () { portraitOk = true; }, { once: true });
     if (document.fonts) document.fonts.ready.then(function () { fontsOk = true; });
-    if (fast) lines.forEach(function (l) { l.classList.add("on"); });
     function tick(now) {
       var t = now - t0, finished = (portraitOk && fontsOk && t > minT) || t > maxT;
       var target = finished ? 1 : Math.min(0.92, (t / minT) * 0.8);
-      p += (target - p) * (finished ? 0.2 : 0.08);
+      p += (target - p) * (finished ? 0.16 : 0.07);
       if (finished && p > 0.994) p = 1;
-      if (bar) bar.style.transform = "scaleX(" + p.toFixed(3) + ")";
-      if (pct) pct.textContent = ("00" + Math.round(p * 100)).slice(-3);
-      lines.forEach(function (l, i) { if (p >= i / lines.length) l.classList.add("on"); });
-      if (p < 1) requestAnimationFrame(tick); else finish();
+      var lit = Math.round(p * dots.length);
+      dots.forEach(function (d, i) { d.classList.toggle("on", i < lit); });
+      if (pct) pct.textContent = Math.round(p * 100);
+      if (p < 1) requestAnimationFrame(tick); else setTimeout(finish, 180);
     }
     function finish() {
       el.classList.add("out");
       root.classList.remove("loading");
-      setTimeout(done, fast ? 150 : 350);
-      setTimeout(function () { el.remove(); }, 1100);
+      setTimeout(done, fast ? 150 : 380);
+      setTimeout(function () { el.remove(); }, 1200);
     }
     requestAnimationFrame(tick);
   }
