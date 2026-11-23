@@ -350,3 +350,5 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 .contact-btns { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 0; }
 
 .scr-wait { color: transparent; }
+
+.aka { font-family: var(--mono); font-size: 13px; color: var(--ink-3); margin-top: 1.4em !important; }
