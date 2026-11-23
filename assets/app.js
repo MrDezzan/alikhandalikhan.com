@@ -68,10 +68,48 @@
     requestAnimationFrame(frame);
   }
   var late = !root.classList.contains("intro-pending");
-  root.classList.remove("intro-pending");
-  if (!reduceMotion) {
+  function introScramble() {
+    root.classList.remove("intro-pending");
+    if (reduceMotion || late) return;
     var k = seen ? 0.5 : 1;
-    if (!late) $$('[data-scramble="intro"]').forEach(function (el, i) { scramble(el, (i ? 1500 : 900) * k, (i ? 250 : 80) * k); });
+    $$('[data-scramble="intro"]').forEach(function (el, i) { scramble(el, (i ? 1500 : 900) * k, (i ? 250 : 80) * k); });
+  }
+
+  // ---- loading screen: console boot lines, real progress (fonts + portrait), then it slides away
+  var loader = $(".loader");
+  if (loader && root.classList.contains("loading")) runLoader(loader, seen, introScramble);
+  else { if (loader) loader.remove(); introScramble(); }
+
+  function runLoader(el, fast, done) {
+    var bar = $(".ld-bar b", el), pct = $(".ld-pct", el), lines = $$(".ld-line", el), dotsEl = $(".ld-dots", el);
+    var minT = fast ? 350 : 1300, maxT = fast ? 1400 : 3000, t0 = performance.now(), p = 0;
+    var portraitOk = !$("[data-portrait]"), fontsOk = !document.fonts;
+    window.addEventListener("portrait:ready", function (e) {
+      portraitOk = true;
+      if (dotsEl && e.detail && e.detail.dots) dotsEl.textContent = e.detail.dots.toLocaleString("en-US").replace(/,/g, " ");
+    }, { once: true });
+    if (document.fonts) document.fonts.ready.then(function () { fontsOk = true; });
+    if (fast) lines.forEach(function (l) { l.classList.add("on"); });
+    function tick(now) {
+      var t = now - t0, finished = (portraitOk && fontsOk && t > minT) || t > maxT;
+      var target = finished ? 1 : Math.min(0.92, (t / minT) * 0.8);
+      p += (target - p) * (finished ? 0.2 : 0.08);
+      if (finished && p > 0.994) p = 1;
+      if (bar) bar.style.transform = "scaleX(" + p.toFixed(3) + ")";
+      if (pct) pct.textContent = ("00" + Math.round(p * 100)).slice(-3);
+      lines.forEach(function (l, i) { if (p >= i / lines.length) l.classList.add("on"); });
+      if (p < 1) requestAnimationFrame(tick); else finish();
+    }
+    function finish() {
+      el.classList.add("out");
+      root.classList.remove("loading");
+      setTimeout(done, fast ? 150 : 350);
+      setTimeout(function () { el.remove(); }, 1100);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if (!reduceMotion) {
     var enter = $$('[data-scramble="enter"]');
     if (enter.length && "IntersectionObserver" in window) {
       enter.forEach(function (el) { el.classList.add("scr-wait"); });

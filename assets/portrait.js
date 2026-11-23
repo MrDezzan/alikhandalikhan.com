@@ -25,7 +25,8 @@
   window.addEventListener("scroll", readScroll, { passive: true });
   readScroll();
 
-  function fallback() { root.classList.add("no-gl"); readScroll(); }
+  function ready(dots) { window.dispatchEvent(new CustomEvent("portrait:ready", { detail: { dots: dots || 0 } })); }
+  function fallback() { root.classList.add("no-gl"); readScroll(); ready(0); }
   function glLost() { root.classList.add("gl-lost"); }
   if (reduce || !canvas) { fallback(); return; }
 
@@ -206,14 +207,14 @@
     canvas.addEventListener("webglcontextrestored", function () { root.classList.remove("gl-lost"); start(meta, buf); });
     window.addEventListener("scroll", wake, { passive: true });
 
-    var lastInput = 0, lastDraw = 0, sp = progress;
+    var lastInput = 0, lastDraw = 0, sp = progress, announced = false;
     function wake() { lastInput = performance.now(); if (!raf && !lost) raf = requestAnimationFrame(frame); }
     function frame(now) {
       raf = 0;
       if (lost || !visible || document.hidden) return;
       if (now - t0 > introDur && now - lastInput > 2500 && sp === progress && now - lastDraw < 30) { raf = requestAnimationFrame(frame); return; }
       lastDraw = now;
-      var intro = Math.min(1, (now - t0) / introDur);
+      var intro = 1; // assembled from the start, no fly-in
       mx += (tx - mx) * 0.16; my += (ty - my) * 0.16;
       if (tx < -1e3) { mx = my = -1e4; }
       gl.uniform1f(U.uIntro, intro);
@@ -226,6 +227,7 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
       if (sp < 0.985) gl.drawArrays(gl.POINTS, 0, n);
       canvas.style.visibility = sp < 0.985 ? "visible" : "hidden";
+      if (!announced) { announced = true; ready(n); }
       // keep breathing while on screen; the loop stops when the section scrolls away
       if (sp < 0.985 || progress < 0.985) raf = requestAnimationFrame(frame);
     }
