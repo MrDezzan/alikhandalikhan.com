@@ -200,7 +200,7 @@
   function maxScroll() { return document.documentElement.scrollHeight - window.innerHeight; }
   if (finePointer && !reduceMotion) {
     root.classList.add("smooth-js");
-    var EASE = 0.1;
+    var EASE = 0.08;
     function step() {
       smooth.at += (smooth.to - smooth.at) * EASE;
       if (Math.abs(smooth.to - smooth.at) < 0.5) smooth.at = smooth.to;
