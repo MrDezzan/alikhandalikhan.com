@@ -136,22 +136,12 @@ h1.name em { font-style: italic; color: var(--accent); }
 section { padding: 56px 0; }
 section[id] { scroll-margin-top: 72px; }
 .smooth-js { scroll-behavior: auto; }
-/* every home section gets a whole screen, content centred with air around it */
-/* every home section is one screen: a divider on top, content centred below it,
-   the same breathing room above and below in every section */
+/* every home section is one screen, content centred, the same air above and below */
 .intro ~ section[id] { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; padding: 0; }
 .intro ~ section[id] > .wrap { width: 100%; }
-.sec-head { display: flex; align-items: baseline; gap: 12px; margin-top: 88px; padding-top: 18px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 13px; letter-spacing: .04em; color: var(--ink-3); }
-.sec-no { color: var(--accent); font-weight: 500; }
-.sec-cmd { margin-left: auto; }
-.sec-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-top: clamp(48px, 9vh, 112px); padding-bottom: clamp(72px, 13vh, 160px); }
-@media (max-width: 760px) {
-  .sec-head { margin-top: 72px; }
-  .sec-cmd { display: none; }
-  .sec-body { padding-top: 40px; padding-bottom: 88px; }
-}
-.intro ~ #about { background: linear-gradient(to bottom, transparent, var(--bg) 22%); }
+.sec-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-top: clamp(96px, 14vh, 168px); padding-bottom: clamp(96px, 14vh, 168px); }
+@media (max-width: 760px) { .sec-body { padding-top: 88px; padding-bottom: 88px; } }
+.intro ~ #about { background: linear-gradient(to bottom, transparent 0%, var(--bg) 20%, var(--bg) 55%, transparent 100%); }
 section > .wrap > h2, .h2 { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.4vw, 42px); letter-spacing: -.02em; line-height: 1.15; margin: 0 0 12px; }
 .sub { color: var(--ink-2); margin: 0 0 32px; }
 .prose p { margin: 0 0 1.1em; }
